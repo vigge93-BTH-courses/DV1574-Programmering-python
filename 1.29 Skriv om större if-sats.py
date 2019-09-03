@@ -26,8 +26,6 @@ def original(n):
 def new(n):
     if n < 0:
         print('Below zero')
-    elif n == 10:
-        print('10!')
     elif n == 1000:
         print('Pretty large')
     else:
