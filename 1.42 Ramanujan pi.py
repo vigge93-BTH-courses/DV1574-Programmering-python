@@ -2,6 +2,9 @@ import math
 
 
 def pi():
+    """
+    Calculate pi using Ramanujans algorithm to a precision of 10^-15.
+    """
     sum = 0
     val = 1
     k = 0
