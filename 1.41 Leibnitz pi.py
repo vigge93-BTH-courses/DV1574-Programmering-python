@@ -1,4 +1,13 @@
 def pi(k):
+    """
+    Calculates pi using Leibnitz algorithm.
+
+    The formula for Leibnitz algorithm is:\n
+    4 * sum((-1)^n/(2n + 1))
+
+    Keyword arguments:
+    k -- Number of iterations of the algorithm.
+    """
     sum = 0
     for n in range(k):
         sum += ((-1)**n) / (2 * n + 1)

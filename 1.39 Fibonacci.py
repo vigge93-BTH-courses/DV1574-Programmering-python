@@ -1,4 +1,16 @@
 def fib(n):
+    """
+    Recursively calculate Fib(n).
+
+    Calculates the value for the n:th term in the fibonacci sequence defined.
+    by the following:\n
+    a_0 = 0\n
+    a_1 = 1\n
+    a_n = a_(n-1) + a_(n-2)
+
+    Keyword arguments:
+    n -- Position to calculate
+    """
     if n == 0:
         return 0
     if n == 1:
@@ -7,6 +19,12 @@ def fib(n):
 
 
 def fib_series(n):
+    """
+    Print n numbers in the fibonacci sequence.
+
+    Keyword arguments:
+    n -- number of values to calculate
+    """
     for i in range(n+1):
         print(fib(i))
 

@@ -1,4 +1,11 @@
 def BMI(w, h):
+    """
+    Calculates BMI.
+
+    Keyword arguments:
+    w -- width
+    h -- height
+    """
     return round(w / (h ** 2), 2)
 
 

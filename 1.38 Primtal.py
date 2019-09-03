@@ -2,6 +2,12 @@ import math
 
 
 def is_prime(number):
+    """
+    Returns True if number is prime, otherwise returns False.
+
+    Keyword arguments:
+    number -- Number to test
+    """
     if type(number) != int or number <= 1:
         return False
     res = True
