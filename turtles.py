@@ -33,7 +33,7 @@ def arc(t, r, a):
 
 bob = turtle.Turtle()
 bob.speed(0)
-arc(bob, 100, 270)
+arc(bob, 100, 200)
 bob.left(90)
 bob.fd(100)
 turtle.mainloop()
