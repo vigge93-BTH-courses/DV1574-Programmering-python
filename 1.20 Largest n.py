@@ -17,5 +17,3 @@ def max_n(*nums):
 
 nums = [random.randrange(0, 100) for x in range(1000)]
 print(max_n(*nums))
-print(int('s'))
-print(max_n(3, 5, 's'))
