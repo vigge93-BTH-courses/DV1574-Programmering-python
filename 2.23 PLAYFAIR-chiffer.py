@@ -57,6 +57,9 @@ def encode(msg, key):
     for digraph in msg:
         r_1, c_1, r_2, c_2 = -1, -1, -1, -1
         d_1, d_2 = '', ''
+        if digraph == 'XX':
+            encoded_msg += 'YY'
+            continue
         for i in range(5):
             for j in range(5):
                 if key[i][j] == digraph[0]:
