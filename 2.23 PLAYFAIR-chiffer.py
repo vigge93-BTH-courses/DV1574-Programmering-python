@@ -8,6 +8,8 @@ def get_digraphs(msg):
         digraphs.append(msg)
     return digraphs
 
+# Ineffektiv
+
 
 def generate_digraphs(msg):
     msg = msg.upper()
@@ -30,25 +32,20 @@ def generate_digraphs(msg):
 def generate_key(key):
     table = []
     key = key.upper().replace('J', 'I').replace(' ', '')
-    letter = 'A'
-    used = []
+    alphabet = 'ABCDEFGHIKLMNOPQRSTUVWXYZ'
     for i in range(5):
         table.append([])
         for j in range(5):
-            while True:
-                if len(key) > 0:
-                    if key[0] not in used:
-                        table[i].append(key[0])
-                        used.append(key[0])
-                        key = key[1:]
-                        break
-                    key = key[1:]
-                else:
-                    if letter not in used and letter != 'J':
-                        table[i].append(letter)
-                        used.append(letter)
-                        break
-                    letter = chr(ord(letter) + 1)
+            if len(key) > 0:
+                char = key[0]
+                table[i].append(char)
+                key = key.replace(char, '')
+                alphabet = alphabet.replace(char, '')
+            else:
+                key = alphabet
+                char = key[0]
+                table[i].append(char)
+                key = key.replace(char, '')
     return table
 
 
