@@ -26,13 +26,14 @@ def get_option():
 5: Exit """)
 
     # Repeat until valid input
-    while True:
+    is_valid = False
+    while not is_valid:
         option = input("Your choice: ")
         try:
             option = int(option)
             if not (0 < option <= max_option):
                 raise ValueError
-            break
+            is_valid = True
         except ValueError:
             print(f"'{option}' is not a valid option." +
                   f" Only numbers 1-{max_option} are acceptable.")
@@ -73,18 +74,18 @@ def encrypt(msg, key):
         # If the character is a space, don't encrypt it
         if msg_char == " ":
             encrypted_msg += " "
-            continue
+        else:
+            # Get the values for message and key characters
+            msg_char_value, key_char_value = get_char_values(
+                char_idx, key_idx, msg, key)
 
-        # Get the values for message and key characters
-        msg_char_value, key_char_value = get_char_values(
-            char_idx, key_idx, msg, key)
+            # Get the encrypted letter and add it to the encrypted message
+            encr_letter_value = (
+                msg_char_value + key_char_value) % LENGTH_ALPHABET
+            encr_letter = chr(encr_letter_value + ORD_A)
+            encrypted_msg += encr_letter
 
-        # Get the encrypted letter and add it to the encrypted message
-        encr_letter_value = (msg_char_value + key_char_value) % LENGTH_ALPHABET
-        encr_letter = chr(encr_letter_value + ORD_A)
-        encrypted_msg += encr_letter
-
-        key_idx += 1
+            key_idx += 1
 
     return encrypted_msg
 
@@ -97,18 +98,18 @@ def decrypt(msg, key):
         # If the character is a space, don't decrypt it
         if msg_char == " ":
             decrypted_msg += " "
-            continue
+        else:
+            # Get the values for message and key characters
+            msg_char_value, key_char_value = get_char_values(
+                char_idx, key_idx, msg, key)
 
-        # Get the values for message and key characters
-        msg_char_value, key_char_value = get_char_values(
-            char_idx, key_idx, msg, key)
+            # Get the decrypted letter and add it to the encrypted message
+            decr_letter_value = (
+                msg_char_value - key_char_value) % LENGTH_ALPHABET
+            decr_letter = chr(decr_letter_value + ORD_A)
+            decrypted_msg += decr_letter
 
-        # Get the decrypted letter and add it to the encrypted message
-        decr_letter_value = (msg_char_value - key_char_value) % LENGTH_ALPHABET
-        decr_letter = chr(decr_letter_value + ORD_A)
-        decrypted_msg += decr_letter
-
-        key_idx += 1
+            key_idx += 1
 
     return decrypted_msg
 
@@ -116,9 +117,10 @@ def decrypt(msg, key):
 def main():
     """Main method"""
     message = ""
+    exit_app = False
 
     # Repeat until user exits
-    while True:
+    while not exit_app:
         # Get an option
         option = get_option()
 
@@ -138,7 +140,7 @@ def main():
 
         elif option == Option.EXIT:
             print("Bye")
-            break
+            exit_app = True
 
         print()
 
