@@ -5,7 +5,7 @@ Tid för att renskriva kod: 4h
 
 2.
 Tid för lite svårare uppgift: 30m
-Tid för mycket svårare uppgift: 2:25
+Tid för mycket svårare uppgift: 4:25
 Tid för att renskriva kod:
 
 3. 10^4 = 10 000
