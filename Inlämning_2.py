@@ -77,7 +77,7 @@ def get_guess(available_guesses):
     return guess
 
 
-def update_guesses(available_guesses, guess, correct, wrong_place):
+def update_guesses(available_guesses, guess, last, correct, wrong_place):
     del available_guesses[guess[0]][guess[1]][guess[2]][guess[3]]
     # If no numbers were in the correct position, remove all branches with this order
     if correct == 0:
@@ -217,6 +217,7 @@ print(''.center(len(welcome_str), '-'))
 available_guesses = get_combinations()
 code = generate_code()
 guesses = 0
+last_guess = None
 while guesses < ROWS:
     guess = print('Guess my secret code (4 numbers 0-9): ', end='')
     # nums = guess.split()
@@ -240,7 +241,8 @@ while guesses < ROWS:
     wrong_place = get_numbers_wrong_place(nums, code)
 
     available_guesses = update_guesses(
-        available_guesses, nums, correct, wrong_place)
+        available_guesses, nums, last_guess, correct, wrong_place)
+    last_guess = nums
     if correct == CODE_LEN:
         print(f'Congratulations, you succeeded in {guesses} guesses')
         break
