@@ -1,5 +1,6 @@
 import random
 import copy
+from functools import reduce
 
 
 def generate_code():
@@ -69,25 +70,82 @@ def get_guess(available_guesses):
         max_tree = -1
         len_max = -1
         for key in tree:
-            if len(tree[key]) > len_max:
+            if deep_len(tree[key]) > len_max:
                 max_tree = key
-                len_max = len(tree[key])
+                len_max = deep_len(tree[key])
         guess.append(max_tree)
         tree = tree[max_tree]
     return guess
 
 
-def update_guesses(available_guesses, guess, last, correct, wrong_place):
+def deep_len(tree):
+    if type(tree) == bool:
+        return 1
+    tot = 0
+    for k in tree:
+        tot += deep_len(tree[k])
+    return tot
+
+
+def update_guesses(available_guesses, guess, correct, wrong_place, p_guess, p_correct, p_wrong_place):
+    total = correct + wrong_place
+    if p_guess is not None:
+        p_total = p_correct + p_wrong_place
+        diff = [0, 0, 0, 0]
+        for i in range(len(guess)):
+            diff[i] = abs(guess[i] - p_guess[i])
+        num_diff = reduce(lambda x, y: x + y,
+                          map(lambda x: 1 if x != 0 else 0, diff))
     del available_guesses[guess[0]][guess[1]][guess[2]][guess[3]]
     # If no numbers were in the correct position, remove all branches with this order
     if correct == 0:
         del available_guesses[guess[0]]
         for k_1 in available_guesses:
-            del available_guesses[k_1][guess[1]]
+            if guess[1] in available_guesses[k_1]:
+                del available_guesses[k_1][guess[1]]
             for k_2 in available_guesses[k_1]:
-                del available_guesses[k_1][k_2][guess[2]]
+                if guess[2] in available_guesses[k_1][k_2]:
+                    del available_guesses[k_1][k_2][guess[2]]
                 for k_3 in available_guesses[k_1][k_2]:
-                    del available_guesses[k_1][k_2][k_3][guess[3]]
+                    if guess[3] in available_guesses[k_1][k_2][k_3]:
+                        del available_guesses[k_1][k_2][k_3][guess[3]]
+
+    tree = copy.deepcopy(available_guesses)
+    # If none of the numbers are correct, delete all combination containing those numbers
+    if total == 0:
+        for k_1 in available_guesses:
+            if k_1 in guess:
+                del tree[k_1]
+            else:
+                for k_2 in available_guesses[k_1]:
+                    if k_2 in guess:
+                        del tree[k_1][k_2]
+                    else:
+                        for k_3 in available_guesses[k_1][k_2]:
+                            if k_3 in guess:
+                                del tree[k_1][k_2][k_3]
+                            else:
+                                for k_4 in available_guesses[k_1][k_2][k_3]:
+                                    if k_4 in guess:
+                                        del tree[k_1][k_2][k_3][k_4]
+    # If all numbers are in the code, delete all combinations not containing those numbers
+    elif total == 4:
+        for k_1 in available_guesses:
+            if k_1 not in guess:
+                del tree[k_1]
+            else:
+                for k_2 in available_guesses[k_1]:
+                    if k_2 not in guess:
+                        del tree[k_1][k_2]
+                    else:
+                        for k_3 in available_guesses[k_1][k_2]:
+                            if k_3 not in guess:
+                                del tree[k_1][k_2][k_3]
+                            else:
+                                for k_4 in available_guesses[k_1][k_2][k_3]:
+                                    if k_4 not in guess:
+                                        del tree[k_1][k_2][k_3][k_4]
+    available_guesses = tree
     clean_tree(available_guesses)
     return available_guesses
 
@@ -218,6 +276,8 @@ available_guesses = get_combinations()
 code = generate_code()
 guesses = 0
 last_guess = None
+last_correct = 0
+last_wrong_place = 0
 while guesses < ROWS:
     guess = print('Guess my secret code (4 numbers 0-9): ', end='')
     # nums = guess.split()
@@ -241,8 +301,10 @@ while guesses < ROWS:
     wrong_place = get_numbers_wrong_place(nums, code)
 
     available_guesses = update_guesses(
-        available_guesses, nums, last_guess, correct, wrong_place)
+        available_guesses, nums, correct, wrong_place, last_guess, last_correct, last_wrong_place)
     last_guess = nums
+    last_correct = correct
+    last_wrong_place = wrong_place
     if correct == CODE_LEN:
         print(f'Congratulations, you succeeded in {guesses} guesses')
         break
