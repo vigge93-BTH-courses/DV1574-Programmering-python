@@ -49,32 +49,37 @@ def load_csv_file(file_name):
 def add_data(data_frame):
     if data_frame.empty:
         print('No data in frame to add to')
-    else:
-        idt = data_frame.columns[0]
-        identifier = input(f'Data identifier ({idt}): ')
-        data = {idt: [identifier]}
-        for col in data_frame.columns[1:]:
-            print(col)
-            options = data_frame[col].cat.categories
-            print('Possible values:', *options)
-            input_valid = False
-            while not input_valid:
-                inp = input('Input value: ')
-                if inp in options:
-                    input_valid = True
-            data[col] = [inp]
-        new_data_frame = pd.DataFrame.from_dict(data=data, dtype='category')
-        data_frame = data_frame.append(
-            new_data_frame, ignore_index=True, sort=False)
         return data_frame
+    idt = data_frame.columns[0]
+    identifier = input(f'Data identifier ({idt}): ')
+    data = {idt: [identifier]}
+    for col in data_frame.columns[1:]:
+        print(col)
+        options = data_frame[col].cat.categories
+        print('Possible values:', *options)
+        input_valid = False
+        while not input_valid:
+            inp = input('Input value: ')
+            if inp in options:
+                input_valid = True
+        data[col] = [inp]
+    new_data_frame = pd.DataFrame.from_dict(data=data, dtype='category')
+    data_frame = data_frame.append(
+        new_data_frame, ignore_index=True, sort=False).astype('category')
+    print(data_frame)
+    return data_frame
 
 
 def build_decision_tree(data_frame):
+    if data_frame.empty:
+        print('Error no data to create tree from')
+        return
     dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
     data_frame_code = generate_code_dataframe(data_frame)
     y = data_frame_code.iloc[:, -1]
     x = data_frame_code.iloc[:, 1:-1]
     dtree.fit(x, y)
+    print_tree(dtree, x)
     return dtree
 
 
@@ -88,6 +93,7 @@ def generate_code_dataframe(data_frame):
 def add_observation(data_frame, test_data):
     if data_frame.empty:
         print('No data in frame to add to')
+        return test_data
     else:
         data = {}
         for col in data_frame.columns[1:-1]:
@@ -108,11 +114,36 @@ def add_observation(data_frame, test_data):
 
 def classify(data_frame, decision_tree, test_data):
     if data_frame.empty or not decision_tree or test_data.empty:
-        print('Insufficient data!')
+        print('Insufficient data')
         return
     test_data_code = generate_code_dataframe(test_data)
     prediction = decision_tree.predict(test_data_code)
-    print(data_frame[data_frame.columns[0]][prediction[0]])
+    for code in prediction:
+        print(data_frame[data_frame.columns[-1]][code])
+
+
+def print_tree(dtree, X):
+    import pydotplus
+    from graphviz import Source
+    from sklearn.tree import export_graphviz
+    import numpy as np
+    dot_data = export_graphviz(
+        dtree, feature_names=X.columns, out_file=None,
+        filled=True, rounded=True)
+    graph = pydotplus.graph_from_dot_data(dot_data)
+    nodes = graph.get_node_list()
+    colors = ('springgreen', 'tomato', 'white')
+
+    for node in nodes:
+        if node.get_name() not in ('node', 'edge'):
+            values = dtree.tree_.value[int(node.get_name())][0]
+            # color only nodes where only one class is present
+            if max(values) == sum(values):
+                node.set_fillcolor(colors[np.argmax(values)])
+            # mixed nodes get the default color
+            else:
+                node.set_fillcolor(colors[-1])
+    graph.write_png('tree_color.png')
 
 
 data_frame = pd.DataFrame()
@@ -123,6 +154,9 @@ while option != Option.EXIT:
     option = menu()
     if option == Option.READ_FILE:
         file_name = input('Filename: ')
+        data_frame = pd.DataFrame()
+        test_data = pd.DataFrame()
+        tree = None
         data_frame = load_csv_file(file_name)
     elif option == Option.PRINT:
         print(data_frame)
