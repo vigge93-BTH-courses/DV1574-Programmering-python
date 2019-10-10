@@ -14,6 +14,7 @@ class Option(IntEnum):
 
 
 def menu():
+    """Gets a menu option"""
     option = None
     valid = False
     while not valid:
@@ -30,7 +31,7 @@ def menu():
             if not (min(Option) <= option <= max(Option)):
                 raise ValueError
         except ValueError:
-            pass
+            print('Invalid option')
         else:
             valid = True
     print()
@@ -38,6 +39,7 @@ def menu():
 
 
 def load_csv_file(file_name):
+    """Creates a DataFrame from a csv-file"""
     data_frame = pd.DataFrame()
     try:
         data_frame = pd.read_csv(file_name, dtype='category', sep=',')
@@ -47,124 +49,175 @@ def load_csv_file(file_name):
 
 
 def add_data(data_frame):
+    """Adds data to a DataFrame"""
+
+    # If DataFrame is empty, print message
     if data_frame.empty:
         print('No data in frame to add to')
-        return data_frame
-    idt = data_frame.columns[0]
-    identifier = input(f'Data identifier ({idt}): ')
-    data = {idt: [identifier]}
-    for col in data_frame.columns[1:]:
-        print(col)
-        options = data_frame[col].cat.categories
-        print('Possible values:', *options)
-        input_valid = False
-        while not input_valid:
-            inp = input('Input value: ')
-            if inp in options:
-                input_valid = True
-        data[col] = [inp]
-    new_data_frame = pd.DataFrame.from_dict(data=data, dtype='category')
-    data_frame = data_frame.append(
-        new_data_frame, ignore_index=True, sort=False).astype('category')
-    print(data_frame)
-    return data_frame
-
-
-def build_decision_tree(data_frame):
-    if data_frame.empty:
-        print('Error no data to create tree from')
-        return
-    dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
-    data_frame_code = generate_code_dataframe(data_frame)
-    y = data_frame_code.iloc[:, -1]
-    x = data_frame_code.iloc[:, 1:-1]
-    dtree.fit(x, y)
-    print_tree(dtree, x)
-    return dtree
-
-
-def generate_code_dataframe(data_frame):
-    data_frame_code = pd.DataFrame()
-    for col in data_frame:
-        data_frame_code[col] = data_frame[col].astype('category').cat.codes
-    return data_frame_code
-
-
-def add_observation(data_frame, test_data):
-    if data_frame.empty:
-        print('No data in frame to add to')
-        return test_data
     else:
-        data = {}
-        for col in data_frame.columns[1:-1]:
+        # Get identifier
+        idt = data_frame.columns[0]
+        identifier = input(f'Data identifier ({idt}): ')
+
+        # Create a dictionary for the new row
+        data = {idt: [identifier]}
+
+        # Iterate through all other columns and add the data to the dictionary
+        for col in data_frame.columns[1:]:
+            # Print information
             print(col)
             options = data_frame[col].cat.categories
             print('Possible values:', *options)
+
+            # Get a valid input
             input_valid = False
             while not input_valid:
                 inp = input('Input value: ')
                 if inp in options:
                     input_valid = True
+
+            # Add data to dictionary
             data[col] = [inp]
+        # Create a new DataFrame from the dictionary and append to data_frame
+        new_data_frame = pd.DataFrame.from_dict(data=data, dtype='category')
+        data_frame = data_frame.append(
+            new_data_frame, ignore_index=True, sort=False).astype('category')
+    return data_frame
+
+
+def add_observation(data_frame, test_data):
+    """Adds a test case to the test_data DataFrame."""
+
+    # If data_frame is empty, print message
+    if data_frame.empty:
+        print('No data in frame to add to')
+    else:
+        # Iterate through the data_frame columns,
+        # adding each input to a dictionary
+        data = {}
+        for col in data_frame.columns[1:-1]:
+            # Print information
+            print(col)
+            options = data_frame[col].cat.categories
+            print('Possible values:', *options)
+
+            # Get a valid input
+            input_valid = False
+            while not input_valid:
+                inp = input('Input value: ')
+                if inp in options:
+                    input_valid = True
+
+            # Add the input to the dictionary
+            data[col] = [inp]
+
+        # Create a new DataFrame from the dictionary and append to test_data
         new_data_frame = pd.DataFrame.from_dict(data=data, dtype='category')
         test_data = test_data.append(
             new_data_frame, ignore_index=True, sort=False)
-        return test_data
+
+    return test_data
+
+
+def build_decision_tree(data_frame):
+    """Creates a decision tree based on the data in data_frame"""
+
+    # If data_frame is empty, print message and return
+    if data_frame.empty:
+        print('Error no data to create tree from')
+        return
+
+    # Create an empty tree
+    dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
+
+    # Extract data from data_frame
+    data_frame_code = generate_code_dataframe(data_frame)
+    y = data_frame_code.iloc[:, -1]
+    x = data_frame_code.iloc[:, 1:-1]
+
+    # Fit the tree to the data
+    dtree.fit(x, y)
+
+    return dtree
+
+
+def generate_code_dataframe(data_frame, code_data_frame=None):
+    """Converts categories to codes, using the codes from code_data_frame.
+    If code_data_frame is not provided, it uses data_frame instead."""
+
+    # If code_data_frame is not passed in, use data_frame
+    if code_data_frame is None:
+        code_data_frame = data_frame
+
+    # Copy data_frame
+    data_frame_code = data_frame.copy()
+
+    # Iterate through each column and convert it to codes
+    for col in data_frame:
+
+        # Create a dictionary that maps a category to a code
+        categories = list(code_data_frame[col].cat.categories)
+        categories_dict = {}
+        for i, cat in enumerate(categories):
+            categories_dict[cat] = i
+
+        # Replace all categories with their respective codes
+        data_frame_code[col] = data_frame_code[col].map(categories_dict)
+
+    return data_frame_code
 
 
 def classify(data_frame, decision_tree, test_data):
+    """Classifies the data in the test_data dataframe using the decision_tree.
+    """
+
+    # If any of the DataFrames or the tree are empty, print message and return
     if data_frame.empty or not decision_tree or test_data.empty:
         print('Insufficient data')
         return
-    test_data_code = generate_code_dataframe(test_data)
+
+    # Get the codes for the test_data, using data_frame as a reference
+    test_data_code = generate_code_dataframe(
+        test_data, code_data_frame=data_frame)
+
+    # Predict and print result
     prediction = decision_tree.predict(test_data_code)
     for code in prediction:
-        print(data_frame[data_frame.columns[-1]][code])
+        print(data_frame[data_frame.columns[-1]].cat.categories[code])
 
 
-def print_tree(dtree, X):
-    import pydotplus
-    from graphviz import Source
-    from sklearn.tree import export_graphviz
-    import numpy as np
-    dot_data = export_graphviz(
-        dtree, feature_names=X.columns, out_file=None,
-        filled=True, rounded=True)
-    graph = pydotplus.graph_from_dot_data(dot_data)
-    nodes = graph.get_node_list()
-    colors = ('springgreen', 'tomato', 'white')
-
-    for node in nodes:
-        if node.get_name() not in ('node', 'edge'):
-            values = dtree.tree_.value[int(node.get_name())][0]
-            # color only nodes where only one class is present
-            if max(values) == sum(values):
-                node.set_fillcolor(colors[np.argmax(values)])
-            # mixed nodes get the default color
-            else:
-                node.set_fillcolor(colors[-1])
-    graph.write_png('tree_color.png')
-
-
+# Initialize data
 data_frame = pd.DataFrame()
 test_data = pd.DataFrame()
 tree = None
 option = None
+
 while option != Option.EXIT:
+    # Get option
     option = menu()
     if option == Option.READ_FILE:
+        # Get filename
         file_name = input('Filename: ')
+
+        # Reset data
         data_frame = pd.DataFrame()
         test_data = pd.DataFrame()
         tree = None
+
+        # Load file into data_frame
         data_frame = load_csv_file(file_name)
+
     elif option == Option.PRINT:
         print(data_frame)
+
     elif option == Option.ADD_DATA:
         data_frame = add_data(data_frame)
+
     elif option == Option.BUILD_TREE:
         tree = build_decision_tree(data_frame)
+
     elif option == Option.ADD_OBSERVATION:
         test_data = add_observation(data_frame, test_data)
+
     elif option == Option.CLASSIFY:
         classify(data_frame, tree, test_data)
