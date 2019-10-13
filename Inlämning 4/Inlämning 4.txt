@@ -52,6 +52,8 @@ def load_csv_file(file_name):
         data_frame = pd.read_csv(file_name, dtype='category', sep=',')
     except FileNotFoundError:
         print(f'Error when reading file: File \'{file_name}\' does not exist')
+    except Exception as e:
+        print(e)
     return data_frame
 
 
